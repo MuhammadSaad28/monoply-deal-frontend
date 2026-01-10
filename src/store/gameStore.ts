@@ -46,7 +46,7 @@ interface GameStore {
   clearError: () => void;
 }
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
+const SOCKET_URL = 'https://monoply-deal-backend-production.up.railway.app';
 
 export const useGameStore = create<GameStore>((set, get) => ({
   socket: null,
