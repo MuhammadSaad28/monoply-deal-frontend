@@ -15,8 +15,12 @@ interface PlayerHandProps {
 interface TargetSelectionState {
   card: Card;
   action: string;
-  step: 'selectPlayer' | 'selectProperty' | 'selectSet' | 'selectWildcardColor' | 'selectRentProperty' | 'selectRentPlayer';
+  step: 'selectPlayer' | 'selectProperty' | 'selectCard' | 'selectSet' | 'selectWildcardColor' | 'selectRentProperty' | 'selectRentPlayer' | 'selectMyProperty' | 'selectMyCard' | 'confirmDoubleRent';
   rentPropertyColor?: PropertyColor;
+  targetPlayerId?: string;
+  targetSetColor?: PropertyColor;
+  targetCardId?: string;
+  useDoubleRent?: boolean;
 }
 
 export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: PlayerHandProps) {
@@ -36,6 +40,8 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
   const hasRearrangeableWildcards = myPlayer?.properties.some(set => 
     set.cards.some(c => (c as PropertyCard).isWildcard && (c as PropertyCard).wildcardColors?.length && (c as PropertyCard).wildcardColors!.length > 1)
   );
+  
+  const hasDoubleRent = myPlayer?.hand.some(c => c.type === 'action' && (c as ActionCard).action === 'doubleRent');
 
   const handleCardClick = (card: Card) => {
     if (mustDiscard) { toggleCardSelection(card.id); return; }
@@ -43,7 +49,7 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
     setSelectedCard(card);
   };
 
-  const executePlay = (target?: { asBank?: boolean; propertySetColor?: PropertyColor; playerId?: string }) => {
+  const executePlay = (target?: { asBank?: boolean; propertySetColor?: PropertyColor; playerId?: string; targetCardId?: string; giveCardId?: string; giveFromSet?: PropertyColor; useDoubleRent?: boolean }) => {
     if (!selectedCard) return;
     playCard(selectedCard.id, target);
     setSelectedCard(null); setTargetSelection(null); setSelectedPlayer(null);
@@ -58,6 +64,10 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
       if (!otherPlayers.some(p => p.properties.some(s => s.isComplete))) { alert('No player has a complete set!'); return; }
     } else if (action === 'debtCollector') {
       // Debt collector - just select player
+    } else if (action === 'forcedDeal') {
+      // Check if I have properties to give
+      if (!myPlayer?.properties.some(s => !s.isComplete && s.cards.length > 0)) { alert('You need a property to exchange!'); return; }
+      if (!otherPlayers.some(p => p.properties.some(s => !s.isComplete && s.cards.length > 0))) { alert('No properties to steal!'); return; }
     } else {
       if (!otherPlayers.some(p => p.properties.some(s => !s.isComplete && s.cards.length > 0))) { alert('No properties to steal!'); return; }
     }
@@ -74,7 +84,11 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
     const rent = card as RentCard;
     const matchingSets = myPlayer?.properties.filter(s => rent.colors.includes(s.color)) || [];
     if (matchingSets.length === 0) { alert('You need a matching property to charge rent!'); return; }
-    if (matchingSets.length === 1) {
+    
+    // Check if player has double rent and enough actions
+    if (hasDoubleRent && actionsRemaining >= 2) {
+      setTargetSelection({ card, action: 'rent', step: 'confirmDoubleRent' });
+    } else if (matchingSets.length === 1) {
       if (rent.isWildRent) {
         setTargetSelection({ card, action: 'rent', step: 'selectRentPlayer', rentPropertyColor: matchingSets[0].color });
       } else {
@@ -85,20 +99,37 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
     }
   };
 
+  const confirmDoubleRent = (useDouble: boolean) => {
+    if (!targetSelection) return;
+    const rent = targetSelection.card as RentCard;
+    const matchingSets = myPlayer?.properties.filter(s => rent.colors.includes(s.color)) || [];
+    
+    if (matchingSets.length === 1) {
+      if (rent.isWildRent) {
+        setTargetSelection({ ...targetSelection, step: 'selectRentPlayer', rentPropertyColor: matchingSets[0].color, useDoubleRent: useDouble });
+      } else {
+        playCard(targetSelection.card.id, { propertySetColor: matchingSets[0].color, useDoubleRent: useDouble });
+        setTargetSelection(null);
+      }
+    } else {
+      setTargetSelection({ ...targetSelection, step: 'selectRentProperty', useDoubleRent: useDouble });
+    }
+  };
+
   const selectRentProperty = (color: PropertyColor) => {
     if (!targetSelection) return;
     const rent = targetSelection.card as RentCard;
     if (rent.isWildRent) {
       setTargetSelection({ ...targetSelection, step: 'selectRentPlayer', rentPropertyColor: color });
     } else {
-      playCard(targetSelection.card.id, { propertySetColor: color });
+      playCard(targetSelection.card.id, { propertySetColor: color, useDoubleRent: targetSelection.useDoubleRent });
       setTargetSelection(null);
     }
   };
 
   const selectRentPlayer = (player: Player) => {
     if (!targetSelection || !targetSelection.rentPropertyColor) return;
-    playCard(targetSelection.card.id, { propertySetColor: targetSelection.rentPropertyColor, playerId: player.id });
+    playCard(targetSelection.card.id, { propertySetColor: targetSelection.rentPropertyColor, playerId: player.id, useDoubleRent: targetSelection.useDoubleRent });
     setTargetSelection(null);
   };
 
@@ -110,12 +141,41 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
       return;
     }
     setSelectedPlayer(player);
-    setTargetSelection({ ...targetSelection, step: targetSelection.action === 'dealBreaker' ? 'selectSet' : 'selectProperty' });
+    setTargetSelection({ ...targetSelection, step: targetSelection.action === 'dealBreaker' ? 'selectSet' : 'selectProperty', targetPlayerId: player.id });
   };
 
   const selectTargetProperty = (color: PropertyColor) => {
     if (!targetSelection || !selectedPlayer) return;
-    playCard(targetSelection.card.id, { playerId: selectedPlayer.id, propertySetColor: color });
+    
+    if (targetSelection.action === 'dealBreaker') {
+      // Deal breaker takes whole set - execute immediately
+      playCard(targetSelection.card.id, { playerId: selectedPlayer.id, propertySetColor: color });
+      setTargetSelection(null); setSelectedPlayer(null);
+    } else if (targetSelection.action === 'slyDeal') {
+      // Sly Deal - initiator just selects the SET, target will choose which card
+      playCard(targetSelection.card.id, { playerId: selectedPlayer.id, propertySetColor: color });
+      setTargetSelection(null); setSelectedPlayer(null);
+    } else if (targetSelection.action === 'forcedDeal') {
+      // Forced Deal - need to select my property to give, then target chooses their card
+      setTargetSelection({ ...targetSelection, step: 'selectMyProperty', targetSetColor: color });
+    }
+  };
+
+  const selectMyProperty = (color: PropertyColor) => {
+    if (!targetSelection) return;
+    setTargetSelection({ ...targetSelection, step: 'selectMyCard', giveFromSet: color } as any);
+  };
+
+  const selectMyCard = (cardId: string) => {
+    if (!targetSelection || !selectedPlayer || !targetSelection.targetSetColor) return;
+    const ts = targetSelection as any;
+    // For Forced Deal: initiator selects their card to give, target will choose which card from their set
+    playCard(targetSelection.card.id, { 
+      playerId: selectedPlayer.id, 
+      propertySetColor: targetSelection.targetSetColor,
+      giveCardId: cardId,
+      giveFromSet: ts.giveFromSet
+    });
     setTargetSelection(null); setSelectedPlayer(null);
   };
 
@@ -142,6 +202,7 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
       } else {
         actions.push({ label: 'Play Property', icon: '🏠', color: 'bg-blue-600 hover:bg-blue-500', onClick: () => executePlay({ propertySetColor: prop.color }) });
       }
+      // Property cards should NOT have bank option - they must be played as properties
     }
     if (selectedCard.type === 'action') {
       const action = selectedCard as ActionCard;
@@ -155,12 +216,21 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
       } else if (!['justSayNo', 'doubleRent'].includes(action.action)) {
         actions.push({ label: action.name, icon: '⚡', color: 'bg-purple-600 hover:bg-purple-500', onClick: () => executePlay() });
       }
+      // Action cards can be banked if they have value
+      if (selectedCard.value > 0) {
+        actions.push({ label: `Bank ($${selectedCard.value}M)`, icon: '💰', color: 'bg-green-600 hover:bg-green-500', onClick: () => executePlay({ asBank: true }) });
+      }
     }
     if (selectedCard.type === 'rent') {
       actions.push({ label: 'Charge Rent', icon: '💵', color: 'bg-amber-600 hover:bg-amber-500', onClick: () => startRentSelection(selectedCard) });
+      // Rent cards can be banked if they have value
+      if (selectedCard.value > 0) {
+        actions.push({ label: `Bank ($${selectedCard.value}M)`, icon: '💰', color: 'bg-green-600 hover:bg-green-500', onClick: () => executePlay({ asBank: true }) });
+      }
     }
-    if (selectedCard.value > 0) {
-      actions.push({ label: `Bank (${selectedCard.value}M)`, icon: '💰', color: 'bg-green-600 hover:bg-green-500', onClick: () => executePlay({ asBank: true }) });
+    if (selectedCard.type === 'money') {
+      // Money cards go straight to bank
+      actions.push({ label: `Bank ($${selectedCard.value}M)`, icon: '💰', color: 'bg-green-600 hover:bg-green-500', onClick: () => executePlay({ asBank: true }) });
     }
     return actions;
   };
@@ -169,6 +239,16 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
     if (!selectedPlayer || !targetSelection) return [];
     if (targetSelection.action === 'dealBreaker') return selectedPlayer.properties.filter(s => s.isComplete);
     return selectedPlayer.properties.filter(s => !s.isComplete && s.cards.length > 0);
+  };
+
+  const getCardsInSet = (player: Player, color: PropertyColor) => {
+    const set = player.properties.find(s => s.color === color);
+    return set?.cards.filter(c => c.type === 'property') || [];
+  };
+
+  const getMyStealableProperties = () => {
+    if (!myPlayer) return [];
+    return myPlayer.properties.filter(s => !s.isComplete && s.cards.length > 0);
   };
 
   const getRearrangeableWildcards = () => {
@@ -254,6 +334,23 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
       {targetSelection && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80" onClick={cancelTargetSelection}>
           <div className="bg-gray-900 rounded-2xl p-6 max-w-md w-full border border-white/20 shadow-2xl max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            
+            {/* Double Rent Confirmation */}
+            {targetSelection.step === 'confirmDoubleRent' && (
+              <>
+                <h3 className="text-xl font-bold text-center mb-2">💵 Charge Rent</h3>
+                <p className="text-gray-400 text-center mb-4">You have Double Rent! Use it? (costs 2 actions)</p>
+                <div className="space-y-3">
+                  <button onClick={() => confirmDoubleRent(true)} className="w-full p-4 bg-amber-600 hover:bg-amber-500 rounded-xl text-white font-bold flex items-center justify-center gap-2">
+                    <span className="text-2xl">×2</span> Double Rent!
+                  </button>
+                  <button onClick={() => confirmDoubleRent(false)} className="w-full p-4 bg-white/10 hover:bg-white/20 rounded-xl text-white font-bold">
+                    Normal Rent
+                  </button>
+                </div>
+              </>
+            )}
+
             {/* Wildcard Color Selection */}
             {targetSelection.step === 'selectWildcardColor' && (
               <>
@@ -268,10 +365,11 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
                 </div>
               </>
             )}
+
             {/* Rent Property Selection */}
             {targetSelection.step === 'selectRentProperty' && (
               <>
-                <h3 className="text-xl font-bold text-center mb-2">💵 Charge Rent</h3>
+                <h3 className="text-xl font-bold text-center mb-2">💵 Charge Rent{targetSelection.useDoubleRent ? ' (×2!)' : ''}</h3>
                 <p className="text-gray-400 text-center mb-4">Which property do you want to charge rent for?</p>
                 <div className="space-y-3">
                   {getMatchingRentSets().map(set => (
@@ -286,10 +384,11 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
                 </div>
               </>
             )}
+
             {/* Rent Player Selection (Wild Rent) */}
             {targetSelection.step === 'selectRentPlayer' && (
               <>
-                <h3 className="text-xl font-bold text-center mb-2">💵 Wild Rent</h3>
+                <h3 className="text-xl font-bold text-center mb-2">💵 Wild Rent{targetSelection.useDoubleRent ? ' (×2!)' : ''}</h3>
                 <p className="text-gray-400 text-center mb-4">Select a player to charge rent</p>
                 <div className="space-y-3">
                   {otherPlayers.map(player => (
@@ -321,11 +420,12 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
                 </div>
               </>
             )}
-            {/* Property Selection for Steal */}
+
+            {/* Property Set Selection */}
             {(targetSelection.step === 'selectProperty' || targetSelection.step === 'selectSet') && selectedPlayer && (
               <>
-                <h3 className="text-xl font-bold text-center mb-2">{targetSelection.action === 'dealBreaker' ? 'Select Complete Set' : 'Select Property'}</h3>
-                <p className="text-gray-400 text-center mb-4">From {selectedPlayer.name}</p>
+                <h3 className="text-xl font-bold text-center mb-2">{targetSelection.action === 'dealBreaker' ? 'Select Complete Set to Steal' : 'Select Property Set'}</h3>
+                <p className="text-gray-400 text-center mb-4">From {selectedPlayer.name}{targetSelection.action === 'slyDeal' && ' (they will choose which card to give)'}</p>
                 <div className="space-y-3">
                   {getStealableProperties().map(set => (
                     <button key={set.color} onClick={() => selectTargetProperty(set.color)} className="w-full p-4 rounded-xl flex items-center gap-4 hover:scale-[1.02]" style={{ backgroundColor: `${PROPERTY_COLORS[set.color].bg}33`, borderWidth: 2, borderColor: PROPERTY_COLORS[set.color].border }}>
@@ -340,6 +440,43 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
                 <button onClick={() => { setSelectedPlayer(null); setTargetSelection({ ...targetSelection, step: 'selectPlayer' }); }} className="w-full mt-4 py-2 text-gray-400 hover:text-white">← Back</button>
               </>
             )}
+
+            {/* My Property Selection (Forced Deal - what to give) */}
+            {targetSelection.step === 'selectMyProperty' && (
+              <>
+                <h3 className="text-xl font-bold text-center mb-2">Select Your Property to Give</h3>
+                <p className="text-gray-400 text-center mb-4">Choose which set to give from (they will choose which card from their set)</p>
+                <div className="space-y-3">
+                  {getMyStealableProperties().map(set => (
+                    <button key={set.color} onClick={() => selectMyProperty(set.color)} className="w-full p-4 rounded-xl flex items-center gap-4 hover:scale-[1.02]" style={{ backgroundColor: `${PROPERTY_COLORS[set.color].bg}33`, borderWidth: 2, borderColor: PROPERTY_COLORS[set.color].border }}>
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: PROPERTY_COLORS[set.color].bg }}>🏠</div>
+                      <div className="text-left flex-1">
+                        <p className="font-bold" style={{ color: PROPERTY_COLORS[set.color].bg }}>{PROPERTY_COLORS[set.color].name}</p>
+                        <p className="text-sm text-gray-300">{set.cards.length} card{set.cards.length !== 1 ? 's' : ''}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                <button onClick={() => setTargetSelection({ ...targetSelection, step: 'selectProperty' })} className="w-full mt-4 py-2 text-gray-400 hover:text-white">← Back</button>
+              </>
+            )}
+
+            {/* My Card Selection (Forced Deal - specific card to give) */}
+            {targetSelection.step === 'selectMyCard' && (targetSelection as any).giveFromSet && (
+              <>
+                <h3 className="text-xl font-bold text-center mb-2">Select Card to Give</h3>
+                <p className="text-gray-400 text-center mb-4">From your {PROPERTY_COLORS[(targetSelection as any).giveFromSet].name}</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {myPlayer && getCardsInSet(myPlayer, (targetSelection as any).giveFromSet).map(card => (
+                    <div key={card.id} onClick={() => selectMyCard(card.id)} className="cursor-pointer hover:scale-105 transition-transform">
+                      <GameCard card={card} size="md" />
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => setTargetSelection({ ...targetSelection, step: 'selectMyProperty' })} className="w-full mt-4 py-2 text-gray-400 hover:text-white">← Back</button>
+              </>
+            )}
+
             <button onClick={cancelTargetSelection} className="w-full mt-4 py-3 text-gray-400 hover:text-white text-lg">✕ Cancel</button>
           </div>
         </div>

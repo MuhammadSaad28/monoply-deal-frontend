@@ -8,17 +8,18 @@ interface GameCardProps {
   disabled?: boolean;
 }
 
+// Using explicit hex colors that render consistently across all devices
 const PROPERTY_COLORS: Record<PropertyColor, { bg: string; border: string; text: string; name: string }> = {
-  brown: { bg: '#8B4513', border: '#5D2E0C', text: '#FFF', name: 'Brown' },
-  lightBlue: { bg: '#87CEEB', border: '#5BA3C7', text: '#000', name: 'Light Blue' },
-  pink: { bg: '#FF69B4', border: '#DB3E8E', text: '#FFF', name: 'Pink' },
-  orange: { bg: '#FF8C00', border: '#CC7000', text: '#000', name: 'Orange' },
-  red: { bg: '#DC143C', border: '#A50E2D', text: '#FFF', name: 'Red' },
-  yellow: { bg: '#FFD700', border: '#CCB000', text: '#000', name: 'Yellow' },
-  green: { bg: '#228B22', border: '#1A6B1A', text: '#FFF', name: 'Green' },
-  darkBlue: { bg: '#00008B', border: '#000066', text: '#FFF', name: 'Dark Blue' },
-  railroad: { bg: '#1C1C1C', border: '#000000', text: '#FFF', name: 'Railroad' },
-  utility: { bg: '#90EE90', border: '#6BC76B', text: '#000', name: 'Utility' },
+  brown: { bg: '#8B4513', border: '#5D2E0C', text: '#FFFFFF', name: 'Brown' },
+  lightBlue: { bg: '#00BFFF', border: '#0099CC', text: '#000000', name: 'Light Blue' },
+  pink: { bg: '#FF1493', border: '#CC1076', text: '#FFFFFF', name: 'Pink' },
+  orange: { bg: '#FF6600', border: '#CC5200', text: '#000000', name: 'Orange' },
+  red: { bg: '#FF0000', border: '#CC0000', text: '#FFFFFF', name: 'Red' },
+  yellow: { bg: '#FFFF00', border: '#CCCC00', text: '#000000', name: 'Yellow' },
+  green: { bg: '#00AA00', border: '#008800', text: '#FFFFFF', name: 'Green' },
+  darkBlue: { bg: '#0000CC', border: '#000099', text: '#FFFFFF', name: 'Dark Blue' },
+  railroad: { bg: '#000000', border: '#333333', text: '#FFFFFF', name: 'Black' },
+  utility: { bg: '#90EE90', border: '#6BC76B', text: '#000000', name: 'Light Green' },
 };
 
 const RENT_VALUES: Record<PropertyColor, number[]> = {
