@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
-import { PendingAction, Player, ActionCard, PropertyCard, Card } from '../types/game';
+import { PendingAction, Player, ActionCard } from '../types/game';
 import { GameCard, PROPERTY_COLORS } from './GameCard';
 
 interface ActionPanelProps {
@@ -20,7 +20,7 @@ export function ActionPanel({ pendingAction, myPlayer }: ActionPanelProps) {
 
   // Check if this is a multi-player action and if current player already responded
   const isMultiPlayerAction = pendingAction.respondedPlayers !== undefined;
-  const hasAlreadyResponded = isMultiPlayerAction && pendingAction.respondedPlayers!.includes(playerId);
+  const hasAlreadyResponded = isMultiPlayerAction && playerId && pendingAction.respondedPlayers!.includes(playerId);
 
   const hasJustSayNo = myPlayer.hand.some(c => c.type === 'action' && (c as ActionCard).action === 'justSayNo');
 

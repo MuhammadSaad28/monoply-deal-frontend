@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Player, PropertySet, Card } from '../types/game';
+import { Player, PropertySet } from '../types/game';
 import { GameCard, PROPERTY_COLORS } from './GameCard';
 
 interface PlayerAreaProps {
