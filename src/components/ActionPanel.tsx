@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
-import { PendingAction, Player, ActionCard, PropertyCard, Card } from '../types/game';
+import { PendingAction, Player, ActionCard } from '../types/game';
 import { GameCard, PROPERTY_COLORS } from './GameCard';
 
 interface ActionPanelProps {

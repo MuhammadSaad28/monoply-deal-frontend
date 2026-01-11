@@ -465,7 +465,7 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
             {targetSelection.step === 'selectMyCard' && (targetSelection as any).giveFromSet && (
               <>
                 <h3 className="text-xl font-bold text-center mb-2">Select Card to Give</h3>
-                <p className="text-gray-400 text-center mb-4">From your {PROPERTY_COLORS[(targetSelection as any).giveFromSet].name}</p>
+                <p className="text-gray-400 text-center mb-4">From your {PROPERTY_COLORS[(targetSelection as any).giveFromSet as PropertyColor].name}</p>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {myPlayer && getCardsInSet(myPlayer, (targetSelection as any).giveFromSet).map(card => (
                     <div key={card.id} onClick={() => selectMyCard(card.id)} className="cursor-pointer hover:scale-105 transition-transform">
