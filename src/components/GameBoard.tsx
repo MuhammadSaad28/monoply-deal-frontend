@@ -84,15 +84,9 @@ export function GameBoard() {
         {/* Game Content */}
         <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
           {/* Opponents Sidebar (Desktop) */}
-<<<<<<< HEAD
           <aside className="hidden lg:block w-72 xl:w-80 border-r border-[#FFFFFF]/10 overflow-y-auto p-4 space-y-4 bg-[#000000]/20">
             <h3 className="text-sm font-bold text-[#9CA3AF] uppercase tracking-wide">Opponents</h3>
-            {otherPlayers.map((player, i) => (
-=======
-          <aside className="hidden lg:block w-72 xl:w-80 border-r border-white/10 overflow-y-auto p-4 space-y-4 bg-black/20">
-            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wide">Opponents</h3>
             {otherPlayers.map((player) => (
->>>>>>> e4d9bccfefc8db07d86caa3ffb62f1af88878fb9
               <PlayerArea
                 key={player.id}
                 player={player}
