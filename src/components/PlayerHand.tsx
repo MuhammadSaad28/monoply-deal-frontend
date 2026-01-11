@@ -194,43 +194,43 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
 
   const getCardActions = () => {
     if (!selectedCard) return [];
-    const actions: { label: string; icon: string; color: string; onClick: () => void }[] = [];
+    const actions: { label: string; icon: string; bgColor: string; onClick: () => void }[] = [];
     if (selectedCard.type === 'property') {
       const prop = selectedCard as PropertyCard;
       if (prop.isWildcard && prop.wildcardColors && prop.wildcardColors.length > 1) {
-        actions.push({ label: 'Play Property', icon: '🏠', color: 'bg-blue-600 hover:bg-blue-500', onClick: () => startWildcardColorSelection(selectedCard) });
+        actions.push({ label: 'Play Property', icon: '🏠', bgColor: '#2563EB', onClick: () => startWildcardColorSelection(selectedCard) });
       } else {
-        actions.push({ label: 'Play Property', icon: '🏠', color: 'bg-blue-600 hover:bg-blue-500', onClick: () => executePlay({ propertySetColor: prop.color }) });
+        actions.push({ label: 'Play Property', icon: '🏠', bgColor: '#2563EB', onClick: () => executePlay({ propertySetColor: prop.color }) });
       }
       // Property cards should NOT have bank option - they must be played as properties
     }
     if (selectedCard.type === 'action') {
       const action = selectedCard as ActionCard;
       if (['slyDeal', 'forcedDeal', 'dealBreaker'].includes(action.action)) {
-        actions.push({ label: action.name, icon: action.action === 'dealBreaker' ? '💥' : action.action === 'slyDeal' ? '🦊' : '🔄', color: 'bg-purple-600 hover:bg-purple-500', onClick: () => startTargetSelection(selectedCard, action.action) });
+        actions.push({ label: action.name, icon: action.action === 'dealBreaker' ? '💥' : action.action === 'slyDeal' ? '🦊' : '🔄', bgColor: '#9333EA', onClick: () => startTargetSelection(selectedCard, action.action) });
       } else if (action.action === 'debtCollector') {
-        actions.push({ label: action.name, icon: '💰', color: 'bg-purple-600 hover:bg-purple-500', onClick: () => startTargetSelection(selectedCard, 'debtCollector') });
+        actions.push({ label: action.name, icon: '💰', bgColor: '#9333EA', onClick: () => startTargetSelection(selectedCard, 'debtCollector') });
       } else if (['house', 'hotel'].includes(action.action)) {
         const sets = myPlayer?.properties.filter(s => s.isComplete) || [];
-        if (sets.length > 0) actions.push({ label: action.name, icon: action.action === 'house' ? '🏠' : '🏨', color: 'bg-purple-600 hover:bg-purple-500', onClick: () => executePlay({ propertySetColor: sets[0].color }) });
+        if (sets.length > 0) actions.push({ label: action.name, icon: action.action === 'house' ? '🏠' : '🏨', bgColor: '#9333EA', onClick: () => executePlay({ propertySetColor: sets[0].color }) });
       } else if (!['justSayNo', 'doubleRent'].includes(action.action)) {
-        actions.push({ label: action.name, icon: '⚡', color: 'bg-purple-600 hover:bg-purple-500', onClick: () => executePlay() });
+        actions.push({ label: action.name, icon: '⚡', bgColor: '#9333EA', onClick: () => executePlay() });
       }
       // Action cards can be banked if they have value
       if (selectedCard.value > 0) {
-        actions.push({ label: `Bank ($${selectedCard.value}M)`, icon: '💰', color: 'bg-green-600 hover:bg-green-500', onClick: () => executePlay({ asBank: true }) });
+        actions.push({ label: `Bank ($${selectedCard.value}M)`, icon: '💰', bgColor: '#16A34A', onClick: () => executePlay({ asBank: true }) });
       }
     }
     if (selectedCard.type === 'rent') {
-      actions.push({ label: 'Charge Rent', icon: '💵', color: 'bg-amber-600 hover:bg-amber-500', onClick: () => startRentSelection(selectedCard) });
+      actions.push({ label: 'Charge Rent', icon: '💵', bgColor: '#D97706', onClick: () => startRentSelection(selectedCard) });
       // Rent cards can be banked if they have value
       if (selectedCard.value > 0) {
-        actions.push({ label: `Bank ($${selectedCard.value}M)`, icon: '💰', color: 'bg-green-600 hover:bg-green-500', onClick: () => executePlay({ asBank: true }) });
+        actions.push({ label: `Bank ($${selectedCard.value}M)`, icon: '💰', bgColor: '#16A34A', onClick: () => executePlay({ asBank: true }) });
       }
     }
     if (selectedCard.type === 'money') {
       // Money cards go straight to bank
-      actions.push({ label: `Bank ($${selectedCard.value}M)`, icon: '💰', color: 'bg-green-600 hover:bg-green-500', onClick: () => executePlay({ asBank: true }) });
+      actions.push({ label: `Bank ($${selectedCard.value}M)`, icon: '💰', bgColor: '#16A34A', onClick: () => executePlay({ asBank: true }) });
     }
     return actions;
   };
@@ -273,15 +273,15 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
     <div className="p-3 md:p-4">
       {/* Action phase - can play cards */}
       {isMyTurn && turnPhase === 'action' && !targetSelection && (
-        <div className="mb-3 p-3 bg-green-500/20 border border-green-500/50 rounded-xl">
+        <div className="mb-3 p-3 rounded-xl" style={{ backgroundColor: 'rgba(34, 197, 94, 0.2)', border: '1px solid rgba(34, 197, 94, 0.5)' }}>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="text-center sm:text-left">
-              <p className="text-green-400 font-bold">🎯 Your Turn</p>
-              <p className="text-green-300/70 text-sm">{actionsRemaining} action{actionsRemaining !== 1 ? 's' : ''} remaining</p>
+              <p className="font-bold" style={{ color: '#4ADE80' }}>🎯 Your Turn</p>
+              <p className="text-sm" style={{ color: 'rgba(134, 239, 172, 0.7)' }}>{actionsRemaining} action{actionsRemaining !== 1 ? 's' : ''} remaining</p>
             </div>
             <div className="flex gap-2 justify-center sm:justify-end">
-              {hasRearrangeableWildcards && <button onClick={() => setShowRearrangeModal(true)} className="px-4 py-2 bg-blue-500 hover:bg-blue-400 text-white font-bold rounded-lg">🔄 Rearrange</button>}
-              <button onClick={handleEndTurn} className="px-6 py-2 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-lg">End Turn ✓</button>
+              {hasRearrangeableWildcards && <button onClick={() => setShowRearrangeModal(true)} className="px-4 py-2 text-[#FFFFFF] font-bold rounded-lg" style={{ backgroundColor: '#3B82F6' }}>🔄 Rearrange</button>}
+              <button onClick={handleEndTurn} className="px-6 py-2 text-[#000000] font-bold rounded-lg" style={{ backgroundColor: '#FACC15' }}>End Turn ✓</button>
             </div>
           </div>
         </div>
@@ -289,62 +289,62 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
 
       {/* Finishing phase - all actions used, can rearrange before ending */}
       {isMyTurn && turnPhase === 'finishing' && !targetSelection && (
-        <div className="mb-3 p-3 bg-yellow-500/20 border border-yellow-500/50 rounded-xl">
+        <div className="mb-3 p-3 rounded-xl" style={{ backgroundColor: 'rgba(234, 179, 8, 0.2)', border: '1px solid rgba(234, 179, 8, 0.5)' }}>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="text-center sm:text-left">
-              <p className="text-yellow-400 font-bold">✨ Actions Complete!</p>
-              <p className="text-yellow-300/70 text-sm">Rearrange properties if needed, then finish your turn</p>
+              <p className="font-bold" style={{ color: '#FACC15' }}>✨ Actions Complete!</p>
+              <p className="text-sm" style={{ color: 'rgba(253, 224, 71, 0.7)' }}>Rearrange properties if needed, then finish your turn</p>
             </div>
             <div className="flex gap-2 justify-center sm:justify-end">
-              {hasRearrangeableWildcards && <button onClick={() => setShowRearrangeModal(true)} className="px-4 py-2 bg-blue-500 hover:bg-blue-400 text-white font-bold rounded-lg">🔄 Rearrange</button>}
-              <button onClick={handleEndTurn} className="px-6 py-2 bg-green-500 hover:bg-green-400 text-white font-bold rounded-lg animate-pulse">Finish Turn ✓</button>
+              {hasRearrangeableWildcards && <button onClick={() => setShowRearrangeModal(true)} className="px-4 py-2 text-[#FFFFFF] font-bold rounded-lg" style={{ backgroundColor: '#3B82F6' }}>🔄 Rearrange</button>}
+              <button onClick={handleEndTurn} className="px-6 py-2 text-[#FFFFFF] font-bold rounded-lg animate-pulse" style={{ backgroundColor: '#22C55E' }}>Finish Turn ✓</button>
             </div>
           </div>
         </div>
       )}
 
       {mustDiscard && (
-        <div className="mb-3 p-3 bg-red-500/20 border border-red-500/50 rounded-xl text-center">
-          <p className="text-red-400 font-bold">⚠️ Discard {cardsToDiscard} card{cardsToDiscard !== 1 ? 's' : ''}</p>
-          <p className="text-sm text-gray-400">Selected: {selectedCards.length}/{cardsToDiscard}</p>
-          <button onClick={handleDiscard} disabled={selectedCards.length !== cardsToDiscard} className="mt-2 px-6 py-2 bg-red-600 hover:bg-red-500 disabled:bg-gray-600 text-white rounded-lg font-bold">Discard</button>
+        <div className="mb-3 p-3 rounded-xl text-center" style={{ backgroundColor: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.5)' }}>
+          <p className="font-bold" style={{ color: '#F87171' }}>⚠️ Discard {cardsToDiscard} card{cardsToDiscard !== 1 ? 's' : ''}</p>
+          <p className="text-sm text-[#9CA3AF]">Selected: {selectedCards.length}/{cardsToDiscard}</p>
+          <button onClick={handleDiscard} disabled={selectedCards.length !== cardsToDiscard} className="mt-2 px-6 py-2 text-[#FFFFFF] rounded-lg font-bold" style={{ backgroundColor: selectedCards.length === cardsToDiscard ? '#DC2626' : '#4B5563' }}>Discard</button>
         </div>
       )}
       <div className="flex gap-2 md:gap-3 overflow-x-auto pb-2 -mx-1 px-1">
         {cards.map(card => <div key={card.id} className="flex-shrink-0"><GameCard card={card} size="md" selected={selectedCards.includes(card.id)} onClick={() => handleCardClick(card)} disabled={!canPlay && !mustDiscard} /></div>)}
-        {cards.length === 0 && <p className="text-gray-500 text-center w-full py-8">No cards in hand</p>}
+        {cards.length === 0 && <p className="text-[#6B7280] text-center w-full py-8">No cards in hand</p>}
       </div>
-      <p className="text-center text-xs text-gray-500 mt-2">🃏 {cards.length} cards {cards.length > 7 && <span className="text-red-400">(max 7)</span>}</p>
+      <p className="text-center text-xs text-[#6B7280] mt-2">🃏 {cards.length} cards {cards.length > 7 && <span style={{ color: '#F87171' }}>(max 7)</span>}</p>
 
       {/* Card Action Modal */}
       {selectedCard && canPlay && !targetSelection && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80" onClick={() => setSelectedCard(null)}>
-          <div className="bg-gray-900 rounded-2xl p-6 max-w-sm w-full border border-white/20 shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#000000]/80" onClick={() => setSelectedCard(null)}>
+          <div className="bg-[#111827] rounded-2xl p-6 max-w-sm w-full border border-[#FFFFFF]/20 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex justify-center mb-4"><GameCard card={selectedCard} size="lg" /></div>
             <h3 className="text-xl font-bold text-center mb-4">{selectedCard.name}</h3>
             <div className="space-y-3">
-              {getCardActions().map((action, i) => <button key={i} onClick={action.onClick} className={`w-full py-4 rounded-xl text-white font-bold text-lg flex items-center justify-center gap-3 ${action.color}`}><span className="text-2xl">{action.icon}</span>{action.label}</button>)}
+              {getCardActions().map((action, i) => <button key={i} onClick={action.onClick} className="w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3" style={{ backgroundColor: action.bgColor, color: '#FFFFFF' }}><span className="text-2xl">{action.icon}</span>{action.label}</button>)}
             </div>
-            <button onClick={() => setSelectedCard(null)} className="w-full mt-4 py-3 text-gray-400 hover:text-white text-lg">✕ Cancel</button>
+            <button onClick={() => setSelectedCard(null)} className="w-full mt-4 py-3 text-[#9CA3AF] hover:text-[#FFFFFF] text-lg">✕ Cancel</button>
           </div>
         </div>
       )}
 
       {/* Target Selection Modal */}
       {targetSelection && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80" onClick={cancelTargetSelection}>
-          <div className="bg-gray-900 rounded-2xl p-6 max-w-md w-full border border-white/20 shadow-2xl max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#000000]/80" onClick={cancelTargetSelection}>
+          <div className="bg-[#111827] rounded-2xl p-6 max-w-md w-full border border-[#FFFFFF]/20 shadow-2xl max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             
             {/* Double Rent Confirmation */}
             {targetSelection.step === 'confirmDoubleRent' && (
               <>
                 <h3 className="text-xl font-bold text-center mb-2">💵 Charge Rent</h3>
-                <p className="text-gray-400 text-center mb-4">You have Double Rent! Use it? (costs 2 actions)</p>
+                <p className="text-[#9CA3AF] text-center mb-4">You have Double Rent! Use it? (costs 2 actions)</p>
                 <div className="space-y-3">
-                  <button onClick={() => confirmDoubleRent(true)} className="w-full p-4 bg-amber-600 hover:bg-amber-500 rounded-xl text-white font-bold flex items-center justify-center gap-2">
+                  <button onClick={() => confirmDoubleRent(true)} className="w-full p-4 bg-[#D97706] hover:bg-[#F59E0B] rounded-xl text-[#FFFFFF] font-bold flex items-center justify-center gap-2">
                     <span className="text-2xl">×2</span> Double Rent!
                   </button>
-                  <button onClick={() => confirmDoubleRent(false)} className="w-full p-4 bg-white/10 hover:bg-white/20 rounded-xl text-white font-bold">
+                  <button onClick={() => confirmDoubleRent(false)} className="w-full p-4 bg-[#FFFFFF]/10 hover:bg-[#FFFFFF]/20 rounded-xl text-[#FFFFFF] font-bold">
                     Normal Rent
                   </button>
                 </div>
@@ -370,14 +370,14 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
             {targetSelection.step === 'selectRentProperty' && (
               <>
                 <h3 className="text-xl font-bold text-center mb-2">💵 Charge Rent{targetSelection.useDoubleRent ? ' (×2!)' : ''}</h3>
-                <p className="text-gray-400 text-center mb-4">Which property do you want to charge rent for?</p>
+                <p className="text-[#9CA3AF] text-center mb-4">Which property do you want to charge rent for?</p>
                 <div className="space-y-3">
                   {getMatchingRentSets().map(set => (
                     <button key={set.color} onClick={() => selectRentProperty(set.color)} className="w-full p-4 rounded-xl flex items-center gap-4 hover:scale-[1.02]" style={{ backgroundColor: `${PROPERTY_COLORS[set.color].bg}33`, borderWidth: 2, borderColor: PROPERTY_COLORS[set.color].border }}>
                       <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: PROPERTY_COLORS[set.color].bg }}>🏠</div>
                       <div className="text-left flex-1">
                         <p className="font-bold" style={{ color: PROPERTY_COLORS[set.color].bg }}>{PROPERTY_COLORS[set.color].name}</p>
-                        <p className="text-sm text-gray-300">{set.cards.length} card{set.cards.length !== 1 ? 's' : ''}{set.isComplete && ' ✓'}</p>
+                        <p className="text-sm text-[#D1D5DB]">{set.cards.length} card{set.cards.length !== 1 ? 's' : ''}{set.isComplete && ' ✓'}</p>
                       </div>
                     </button>
                   ))}
@@ -389,12 +389,12 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
             {targetSelection.step === 'selectRentPlayer' && (
               <>
                 <h3 className="text-xl font-bold text-center mb-2">💵 Wild Rent{targetSelection.useDoubleRent ? ' (×2!)' : ''}</h3>
-                <p className="text-gray-400 text-center mb-4">Select a player to charge rent</p>
+                <p className="text-[#9CA3AF] text-center mb-4">Select a player to charge rent</p>
                 <div className="space-y-3">
                   {otherPlayers.map(player => (
-                    <button key={player.id} onClick={() => selectRentPlayer(player)} className="w-full p-4 bg-white/10 hover:bg-white/20 rounded-xl flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-xl font-bold">{player.name.charAt(0).toUpperCase()}</div>
-                      <div className="text-left"><p className="font-bold">{player.name}</p><p className="text-sm text-gray-400">{player.properties.length} sets • ${player.bank.reduce((s, c) => s + c.value, 0)}M bank</p></div>
+                    <button key={player.id} onClick={() => selectRentPlayer(player)} className="w-full p-4 bg-[#FFFFFF]/10 hover:bg-[#FFFFFF]/20 rounded-xl flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-full bg-[#3B82F6] flex items-center justify-center text-xl font-bold">{player.name.charAt(0).toUpperCase()}</div>
+                      <div className="text-left"><p className="font-bold">{player.name}</p><p className="text-sm text-[#9CA3AF]">{player.properties.length} sets • ${player.bank.reduce((s, c) => s + c.value, 0)}M bank</p></div>
                     </button>
                   ))}
                 </div>
@@ -405,16 +405,16 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
             {targetSelection.step === 'selectPlayer' && (
               <>
                 <h3 className="text-xl font-bold text-center mb-2">{targetSelection.action === 'dealBreaker' ? '💥 Deal Breaker' : targetSelection.action === 'slyDeal' ? '🦊 Sly Deal' : targetSelection.action === 'forcedDeal' ? '🔄 Forced Deal' : '💰 Debt Collector'}</h3>
-                <p className="text-gray-400 text-center mb-4">Select a player</p>
+                <p className="text-[#9CA3AF] text-center mb-4">Select a player</p>
                 <div className="space-y-3">
                   {otherPlayers.filter(p => {
                     if (targetSelection.action === 'debtCollector') return true;
                     if (targetSelection.action === 'dealBreaker') return p.properties.some(s => s.isComplete);
                     return p.properties.some(s => !s.isComplete && s.cards.length > 0);
                   }).map(player => (
-                    <button key={player.id} onClick={() => selectTargetPlayer(player)} className="w-full p-4 bg-white/10 hover:bg-white/20 rounded-xl flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-xl font-bold">{player.name.charAt(0).toUpperCase()}</div>
-                      <div className="text-left"><p className="font-bold">{player.name}</p><p className="text-sm text-gray-400">{player.properties.length} sets</p></div>
+                    <button key={player.id} onClick={() => selectTargetPlayer(player)} className="w-full p-4 bg-[#FFFFFF]/10 hover:bg-[#FFFFFF]/20 rounded-xl flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-full bg-[#3B82F6] flex items-center justify-center text-xl font-bold">{player.name.charAt(0).toUpperCase()}</div>
+                      <div className="text-left"><p className="font-bold">{player.name}</p><p className="text-sm text-[#9CA3AF]">{player.properties.length} sets</p></div>
                     </button>
                   ))}
                 </div>
@@ -425,19 +425,19 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
             {(targetSelection.step === 'selectProperty' || targetSelection.step === 'selectSet') && selectedPlayer && (
               <>
                 <h3 className="text-xl font-bold text-center mb-2">{targetSelection.action === 'dealBreaker' ? 'Select Complete Set to Steal' : 'Select Property Set'}</h3>
-                <p className="text-gray-400 text-center mb-4">From {selectedPlayer.name}{targetSelection.action === 'slyDeal' && ' (they will choose which card to give)'}</p>
+                <p className="text-[#9CA3AF] text-center mb-4">From {selectedPlayer.name}{targetSelection.action === 'slyDeal' && ' (they will choose which card to give)'}</p>
                 <div className="space-y-3">
                   {getStealableProperties().map(set => (
                     <button key={set.color} onClick={() => selectTargetProperty(set.color)} className="w-full p-4 rounded-xl flex items-center gap-4 hover:scale-[1.02]" style={{ backgroundColor: `${PROPERTY_COLORS[set.color].bg}33`, borderWidth: 2, borderColor: PROPERTY_COLORS[set.color].border }}>
                       <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: PROPERTY_COLORS[set.color].bg }}>🏠</div>
                       <div className="text-left flex-1">
                         <p className="font-bold" style={{ color: PROPERTY_COLORS[set.color].bg }}>{PROPERTY_COLORS[set.color].name}</p>
-                        <p className="text-sm text-gray-300">{set.cards.length} card{set.cards.length !== 1 ? 's' : ''}{set.isComplete && ' ✓'}</p>
+                        <p className="text-sm text-[#D1D5DB]">{set.cards.length} card{set.cards.length !== 1 ? 's' : ''}{set.isComplete && ' ✓'}</p>
                       </div>
                     </button>
                   ))}
                 </div>
-                <button onClick={() => { setSelectedPlayer(null); setTargetSelection({ ...targetSelection, step: 'selectPlayer' }); }} className="w-full mt-4 py-2 text-gray-400 hover:text-white">← Back</button>
+                <button onClick={() => { setSelectedPlayer(null); setTargetSelection({ ...targetSelection, step: 'selectPlayer' }); }} className="w-full mt-4 py-2 text-[#9CA3AF] hover:text-[#FFFFFF]">← Back</button>
               </>
             )}
 
@@ -445,19 +445,19 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
             {targetSelection.step === 'selectMyProperty' && (
               <>
                 <h3 className="text-xl font-bold text-center mb-2">Select Your Property to Give</h3>
-                <p className="text-gray-400 text-center mb-4">Choose which set to give from (they will choose which card from their set)</p>
+                <p className="text-[#9CA3AF] text-center mb-4">Choose which set to give from (they will choose which card from their set)</p>
                 <div className="space-y-3">
                   {getMyStealableProperties().map(set => (
                     <button key={set.color} onClick={() => selectMyProperty(set.color)} className="w-full p-4 rounded-xl flex items-center gap-4 hover:scale-[1.02]" style={{ backgroundColor: `${PROPERTY_COLORS[set.color].bg}33`, borderWidth: 2, borderColor: PROPERTY_COLORS[set.color].border }}>
                       <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: PROPERTY_COLORS[set.color].bg }}>🏠</div>
                       <div className="text-left flex-1">
                         <p className="font-bold" style={{ color: PROPERTY_COLORS[set.color].bg }}>{PROPERTY_COLORS[set.color].name}</p>
-                        <p className="text-sm text-gray-300">{set.cards.length} card{set.cards.length !== 1 ? 's' : ''}</p>
+                        <p className="text-sm text-[#D1D5DB]">{set.cards.length} card{set.cards.length !== 1 ? 's' : ''}</p>
                       </div>
                     </button>
                   ))}
                 </div>
-                <button onClick={() => setTargetSelection({ ...targetSelection, step: 'selectProperty' })} className="w-full mt-4 py-2 text-gray-400 hover:text-white">← Back</button>
+                <button onClick={() => setTargetSelection({ ...targetSelection, step: 'selectProperty' })} className="w-full mt-4 py-2 text-[#9CA3AF] hover:text-[#FFFFFF]">← Back</button>
               </>
             )}
 
@@ -465,7 +465,7 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
             {targetSelection.step === 'selectMyCard' && (targetSelection as any).giveFromSet && (
               <>
                 <h3 className="text-xl font-bold text-center mb-2">Select Card to Give</h3>
-                <p className="text-gray-400 text-center mb-4">From your {PROPERTY_COLORS[(targetSelection as any).giveFromSet].name}</p>
+                <p className="text-[#9CA3AF] text-center mb-4">From your {PROPERTY_COLORS[(targetSelection as any).giveFromSet].name}</p>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {myPlayer && getCardsInSet(myPlayer, (targetSelection as any).giveFromSet).map(card => (
                     <div key={card.id} onClick={() => selectMyCard(card.id)} className="cursor-pointer hover:scale-105 transition-transform">
@@ -473,29 +473,29 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
                     </div>
                   ))}
                 </div>
-                <button onClick={() => setTargetSelection({ ...targetSelection, step: 'selectMyProperty' })} className="w-full mt-4 py-2 text-gray-400 hover:text-white">← Back</button>
+                <button onClick={() => setTargetSelection({ ...targetSelection, step: 'selectMyProperty' })} className="w-full mt-4 py-2 text-[#9CA3AF] hover:text-[#FFFFFF]">← Back</button>
               </>
             )}
 
-            <button onClick={cancelTargetSelection} className="w-full mt-4 py-3 text-gray-400 hover:text-white text-lg">✕ Cancel</button>
+            <button onClick={cancelTargetSelection} className="w-full mt-4 py-3 text-[#9CA3AF] hover:text-[#FFFFFF] text-lg">✕ Cancel</button>
           </div>
         </div>
       )}
 
       {/* Rearrange Modal */}
       {showRearrangeModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80" onClick={() => { setShowRearrangeModal(false); setRearrangeCard(null); }}>
-          <div className="bg-gray-900 rounded-2xl p-6 max-w-md w-full border border-white/20 shadow-2xl max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#000000]/80" onClick={() => { setShowRearrangeModal(false); setRearrangeCard(null); }}>
+          <div className="bg-[#111827] rounded-2xl p-6 max-w-md w-full border border-[#FFFFFF]/20 shadow-2xl max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             {!rearrangeCard ? (
               <>
                 <h3 className="text-xl font-bold text-center mb-4">🔄 Rearrange Properties</h3>
                 <div className="space-y-3">
                   {getRearrangeableWildcards().map(({ card, fromColor }) => (
-                    <button key={card.id} onClick={() => setRearrangeCard({ card, fromColor })} className="w-full p-4 rounded-xl flex items-center gap-4 bg-white/10 hover:bg-white/20">
+                    <button key={card.id} onClick={() => setRearrangeCard({ card, fromColor })} className="w-full p-4 rounded-xl flex items-center gap-4 bg-[#FFFFFF]/10 hover:bg-[#FFFFFF]/20">
                       <div className="flex-shrink-0"><GameCard card={card} size="sm" /></div>
                       <div className="text-left flex-1">
                         <p className="font-bold">{card.name}</p>
-                        <p className="text-sm text-gray-400">In: <span style={{ color: PROPERTY_COLORS[fromColor].bg }}>{PROPERTY_COLORS[fromColor].name}</span></p>
+                        <p className="text-sm text-[#9CA3AF]">In: <span style={{ color: PROPERTY_COLORS[fromColor].bg }}>{PROPERTY_COLORS[fromColor].name}</span></p>
                       </div>
                     </button>
                   ))}
@@ -512,13 +512,15 @@ export function PlayerHand({ cards, isMyTurn, turnPhase, actionsRemaining }: Pla
                     </button>
                   ))}
                 </div>
-                <button onClick={() => setRearrangeCard(null)} className="w-full mt-4 py-2 text-gray-400 hover:text-white">← Back</button>
+                <button onClick={() => setRearrangeCard(null)} className="w-full mt-4 py-2 text-[#9CA3AF] hover:text-[#FFFFFF]">← Back</button>
               </>
             )}
-            <button onClick={() => { setShowRearrangeModal(false); setRearrangeCard(null); }} className="w-full mt-4 py-3 text-gray-400 hover:text-white text-lg">✕ Close</button>
+            <button onClick={() => { setShowRearrangeModal(false); setRearrangeCard(null); }} className="w-full mt-4 py-3 text-[#9CA3AF] hover:text-[#FFFFFF] text-lg">✕ Close</button>
           </div>
         </div>
       )}
     </div>
   );
 }
+
+

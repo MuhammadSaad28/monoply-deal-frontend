@@ -23,18 +23,21 @@ export function LobbyScreen() {
       <div className="text-center mb-10 md:mb-16 animate-fade-in">
         <div className="relative inline-block">
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight">
-            <span className="bg-gradient-to-r from-yellow-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent drop-shadow-lg">
+            <span 
+              className="bg-clip-text text-transparent drop-shadow-lg"
+              style={{ backgroundImage: 'linear-gradient(135deg, #FFD700 0%, #FFC000 50%, #FFB000 100%)' }}
+            >
               MONOPOLY
             </span>
           </h1>
-          <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-white -mt-2">
+          <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-[#FFFFFF] -mt-2">
             DEAL
           </h2>
-          <div className="absolute -top-2 -right-2 md:-top-4 md:-right-4 bg-green-500 text-white text-xs md:text-sm px-3 py-1 rounded-full font-bold shadow-lg transform rotate-12">
+          <div className="absolute -top-2 -right-2 md:-top-4 md:-right-4 bg-[#22C55E] text-[#FFFFFF] text-xs md:text-sm px-3 py-1 rounded-full font-bold shadow-lg transform rotate-12">
             ONLINE
           </div>
         </div>
-        <p className="text-gray-400 mt-4 md:mt-6 text-base md:text-lg lg:text-xl">
+        <p className="text-[#9CA3AF] mt-4 md:mt-6 text-base md:text-lg lg:text-xl">
           The fast-dealing property trading card game
         </p>
       </div>
@@ -58,8 +61,8 @@ export function LobbyScreen() {
               🚪 Join Room
             </button>
             
-            <div className="pt-6 border-t border-white/10">
-              <div className="flex items-center justify-center gap-6 text-gray-400 text-sm md:text-base">
+            <div className="pt-6 border-t border-[#FFFFFF]/10">
+              <div className="flex items-center justify-center gap-6 text-[#9CA3AF] text-sm md:text-base">
                 <span>👥 2-5 Players</span>
                 <span>⚡ Real-time</span>
                 <span>💬 Chat</span>
@@ -128,9 +131,11 @@ export function LobbyScreen() {
       </div>
 
       {/* Footer */}
-      <div className="mt-8 text-center text-gray-500 text-sm md:text-base">
+      <div className="mt-8 text-center text-[#6B7280] text-sm md:text-base">
         <p>🏆 First to collect 3 complete property sets wins!</p>
       </div>
     </div>
   );
 }
+
+

@@ -28,6 +28,21 @@ const RENT_VALUES: Record<PropertyColor, number[]> = {
   railroad: [1, 2, 3, 4], utility: [1, 2]
 };
 
+// Action card colors with explicit hex values for consistent rendering
+const ACTION_COLORS: Record<string, { gradient: string; border: string; icon: string }> = {
+  dealBreaker: { gradient: 'linear-gradient(to bottom, #EF4444, #B91C1C)', border: '#F87171', icon: '💥' },
+  justSayNo: { gradient: 'linear-gradient(to bottom, #3B82F6, #1D4ED8)', border: '#60A5FA', icon: '🚫' },
+  slyDeal: { gradient: 'linear-gradient(to bottom, #A855F7, #7E22CE)', border: '#C084FC', icon: '🦊' },
+  forcedDeal: { gradient: 'linear-gradient(to bottom, #F97316, #C2410C)', border: '#FB923C', icon: '🔄' },
+  debtCollector: { gradient: 'linear-gradient(to bottom, #CA8A04, #A16207)', border: '#FACC15', icon: '💰' },
+  birthday: { gradient: 'linear-gradient(to bottom, #EC4899, #BE185D)', border: '#F472B6', icon: '🎂' },
+  passGo: { gradient: 'linear-gradient(to bottom, #22C55E, #15803D)', border: '#4ADE80', icon: '➡️' },
+  house: { gradient: 'linear-gradient(to bottom, #10B981, #047857)', border: '#34D399', icon: '🏠' },
+  hotel: { gradient: 'linear-gradient(to bottom, #E11D48, #9F1239)', border: '#FB7185', icon: '🏨' },
+  doubleRent: { gradient: 'linear-gradient(to bottom, #F59E0B, #B45309)', border: '#FBBF24', icon: '×2' },
+  default: { gradient: 'linear-gradient(to bottom, #6B7280, #374151)', border: '#9CA3AF', icon: '⚡' }
+};
+
 const SIZES = {
   xs: { w: 'w-10', h: 'h-14', text: 'text-[6px]', value: 'text-[8px]', icon: 'text-xs', band: 'h-[30%]', rent: 'text-[5px]' },
   sm: { w: 'w-14', h: 'h-20', text: 'text-[8px]', value: 'text-xs', icon: 'text-sm', band: 'h-[30%]', rent: 'text-[6px]' },
@@ -37,14 +52,32 @@ const SIZES = {
 
 export function GameCard({ card, size = 'md', selected, onClick, disabled }: GameCardProps) {
   const s = SIZES[size];
+  
+  // Hidden card (card back)
   if (card.id === 'hidden') {
-    return <div className={`${s.w} ${s.h} rounded-lg bg-gradient-to-br from-red-700 via-red-600 to-red-800 border-2 border-red-400 flex items-center justify-center shadow-lg`}><span className={s.icon}>🎴</span></div>;
+    return (
+      <div 
+        className={`${s.w} ${s.h} rounded-lg border-2 flex items-center justify-center shadow-lg`}
+        style={{ 
+          background: 'linear-gradient(135deg, #B91C1C 0%, #DC2626 50%, #991B1B 100%)',
+          borderColor: '#F87171'
+        }}
+      >
+        <span className={s.icon}>🎴</span>
+      </div>
+    );
   }
 
   const baseClasses = `${s.w} ${s.h} rounded-lg overflow-hidden shadow-lg transition-all duration-200 flex flex-col`;
   const interactiveClasses = onClick && !disabled ? 'cursor-pointer hover:-translate-y-2 hover:shadow-xl' : '';
-  const selectedClasses = selected ? 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-gray-900 scale-105 -translate-y-2' : '';
   const disabledClasses = disabled ? 'opacity-40 grayscale-[30%]' : '';
+  
+  // Selected card styling with explicit hex color (yellow ring)
+  const selectedStyle: React.CSSProperties = selected ? {
+    boxShadow: '0 0 0 4px #FFD700, 0 0 0 6px #1F2937',
+    transform: 'scale(1.05) translateY(-8px)'
+  } : {};
+
 
   // PROPERTY CARD
   if (card.type === 'property') {
@@ -67,17 +100,24 @@ export function GameCard({ card, size = 'md', selected, onClick, disabled }: Gam
     }
 
     return (
-      <div onClick={disabled ? undefined : onClick} className={`${baseClasses} ${interactiveClasses} ${selectedClasses} ${disabledClasses} border-2`}
-        style={{ background: cardBackground, borderColor: isUniversalWild ? '#FFD700' : (isMultiColorWild ? '#888' : primaryColor.border) }}>
+      <div 
+        onClick={disabled ? undefined : onClick} 
+        className={`${baseClasses} ${interactiveClasses} ${disabledClasses} border-2`}
+        style={{ 
+          background: cardBackground, 
+          borderColor: isUniversalWild ? '#FFD700' : (isMultiColorWild ? '#888888' : primaryColor.border),
+          ...selectedStyle 
+        }}
+      >
         <div className={`${s.band} flex items-center justify-center px-1`} style={{ background: bandBackground }}>
-          {isUniversalWild ? <span className={`${s.text} font-black text-white text-center`}>WILD CARD</span>
-           : isMultiColorWild ? <span className={`${s.text} font-black text-white text-center drop-shadow-md`}>WILD</span>
+          {isUniversalWild ? <span className={`${s.text} font-black text-[#FFFFFF] text-center`}>WILD CARD</span>
+           : isMultiColorWild ? <span className={`${s.text} font-black text-[#FFFFFF] text-center drop-shadow-md`}>WILD</span>
            : <span className={`${s.text} font-bold text-center px-0.5`} style={{ color: primaryColor.text }}>{prop.name}</span>}
         </div>
-        <div className="flex-1 flex flex-col items-center justify-center bg-white/90 px-1 overflow-hidden">
+        <div className="flex-1 flex flex-col items-center justify-center px-1 overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.9)' }}>
           {!isUniversalWild && !isMultiColorWild && (
             <div className="flex flex-wrap justify-center gap-x-1">
-              {RENT_VALUES[prop.color].map((rent, i) => <span key={i} className={`${s.rent} font-bold text-gray-700`}>{i+1}🏠=${rent}M</span>)}
+              {RENT_VALUES[prop.color].map((rent, i) => <span key={i} className={`${s.rent} font-bold`} style={{ color: '#374151' }}>{i+1}🏠={rent}M</span>)}
             </div>
           )}
           {isMultiColorWild && prop.wildcardColors && (
@@ -85,52 +125,76 @@ export function GameCard({ card, size = 'md', selected, onClick, disabled }: Gam
               {prop.wildcardColors.map(color => (
                 <div key={color} className="flex items-center gap-1 justify-center">
                   <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: PROPERTY_COLORS[color].bg }} />
-                  <span className={`${s.rent} font-bold text-gray-700`}>{RENT_VALUES[color].map((r,i) => `${i+1}=$${r}M`).join(' ')}</span>
+                  <span className={`${s.rent} font-bold`} style={{ color: '#374151' }}>{RENT_VALUES[color].map((r,i) => `${i+1}=${r}M`).join(' ')}</span>
                 </div>
               ))}
             </div>
           )}
-          {isUniversalWild && <><span className={s.icon}>🌈</span><span className={`${s.text} text-gray-800 font-bold mt-1`}>ANY COLOR</span></>}
+          {isUniversalWild && <><span className={s.icon}>🌈</span><span className={`${s.text} font-bold mt-1`} style={{ color: '#1F2937' }}>ANY COLOR</span></>}
         </div>
-        <div className="bg-black/40 py-1 text-center"><span className={`${s.value} font-black text-white`}>${prop.value}M</span></div>
+        <div style={{ backgroundColor: 'rgba(0,0,0,0.4)' }} className="py-1 text-center"><span className={`${s.value} font-black text-[#FFFFFF]`}>${prop.value}M</span></div>
       </div>
     );
   }
 
   // MONEY CARD
   if (card.type === 'money') {
-    const moneyColors: Record<number, string> = { 1: 'from-green-400 to-green-600', 2: 'from-green-500 to-green-700', 3: 'from-emerald-400 to-emerald-600', 4: 'from-teal-400 to-teal-600', 5: 'from-cyan-400 to-cyan-600', 10: 'from-yellow-400 to-amber-500' };
-    const gradient = moneyColors[card.value] || 'from-green-500 to-green-700';
+    const moneyGradients: Record<number, { from: string; to: string; border: string }> = {
+      1: { from: '#22C55E', to: '#16A34A', border: '#4ADE80' },
+      2: { from: '#16A34A', to: '#15803D', border: '#22C55E' },
+      3: { from: '#10B981', to: '#059669', border: '#34D399' },
+      4: { from: '#14B8A6', to: '#0D9488', border: '#2DD4BF' },
+      5: { from: '#06B6D4', to: '#0891B2', border: '#22D3EE' },
+      10: { from: '#FFD700', to: '#FFB000', border: '#FFE033' }
+    };
+    const colors = moneyGradients[card.value] || moneyGradients[1];
     return (
-      <div onClick={disabled ? undefined : onClick} className={`${baseClasses} ${interactiveClasses} ${selectedClasses} ${disabledClasses} bg-gradient-to-b ${gradient} border-2 border-green-300`}>
-        <div className="bg-white/90 py-1 text-center"><span className={`${s.text} font-black text-green-800`}>MONEY</span></div>
-        <div className="flex-1 flex flex-col items-center justify-center"><span className={`${s.value} font-black text-white drop-shadow-lg`} style={{ fontSize: size === 'lg' ? '2rem' : undefined }}>${card.value}M</span></div>
-        <div className="bg-green-800/50 py-1 text-center"><span className={`${s.text} text-green-100`}>MILLION</span></div>
+      <div 
+        onClick={disabled ? undefined : onClick} 
+        className={`${baseClasses} ${interactiveClasses} ${disabledClasses} border-2`}
+        style={{ 
+          background: `linear-gradient(to bottom, ${colors.from}, ${colors.to})`, 
+          borderColor: colors.border,
+          ...selectedStyle 
+        }}
+      >
+        <div style={{ backgroundColor: 'rgba(255,255,255,0.9)' }} className="py-1 text-center">
+          <span className={`${s.text} font-black`} style={{ color: '#166534' }}>MONEY</span>
+        </div>
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <span className={`${s.value} font-black text-[#FFFFFF] drop-shadow-lg`} style={{ fontSize: size === 'lg' ? '2rem' : undefined }}>${card.value}M</span>
+        </div>
+        <div style={{ backgroundColor: 'rgba(22, 101, 52, 0.5)' }} className="py-1 text-center">
+          <span className={`${s.text}`} style={{ color: '#DCFCE7' }}>MILLION</span>
+        </div>
       </div>
     );
   }
 
+
   // ACTION CARD
   if (card.type === 'action') {
     const action = card as ActionCard;
-    const cfg: Record<string, { icon: string; gradient: string; border: string }> = {
-      dealBreaker: { icon: '💥', gradient: 'from-red-500 to-red-700', border: 'border-red-400' },
-      justSayNo: { icon: '🚫', gradient: 'from-blue-500 to-blue-700', border: 'border-blue-400' },
-      slyDeal: { icon: '🦊', gradient: 'from-purple-500 to-purple-700', border: 'border-purple-400' },
-      forcedDeal: { icon: '🔄', gradient: 'from-orange-500 to-orange-700', border: 'border-orange-400' },
-      debtCollector: { icon: '💰', gradient: 'from-yellow-600 to-yellow-800', border: 'border-yellow-500' },
-      birthday: { icon: '🎂', gradient: 'from-pink-500 to-pink-700', border: 'border-pink-400' },
-      passGo: { icon: '➡️', gradient: 'from-green-500 to-green-700', border: 'border-green-400' },
-      house: { icon: '🏠', gradient: 'from-emerald-500 to-emerald-700', border: 'border-emerald-400' },
-      hotel: { icon: '🏨', gradient: 'from-rose-600 to-rose-800', border: 'border-rose-400' },
-      doubleRent: { icon: '×2', gradient: 'from-amber-500 to-amber-700', border: 'border-amber-400' },
-    };
-    const c = cfg[action.action] || { icon: '⚡', gradient: 'from-gray-500 to-gray-700', border: 'border-gray-400' };
+    const cfg = ACTION_COLORS[action.action] || ACTION_COLORS.default;
     return (
-      <div onClick={disabled ? undefined : onClick} className={`${baseClasses} ${interactiveClasses} ${selectedClasses} ${disabledClasses} bg-gradient-to-b ${c.gradient} border-2 ${c.border}`}>
-        <div className="bg-white/95 py-1 px-1"><p className={`${s.text} font-black text-gray-800 text-center leading-tight`}>{action.name}</p></div>
-        <div className="flex-1 flex items-center justify-center"><span className={s.icon}>{c.icon}</span></div>
-        <div className="bg-black/30 py-1 text-center"><span className={`${s.value} font-black text-white`}>${action.value}M</span></div>
+      <div 
+        onClick={disabled ? undefined : onClick} 
+        className={`${baseClasses} ${interactiveClasses} ${disabledClasses} border-2`}
+        style={{ 
+          background: cfg.gradient, 
+          borderColor: cfg.border,
+          ...selectedStyle 
+        }}
+      >
+        <div style={{ backgroundColor: 'rgba(255,255,255,0.95)' }} className="py-1 px-1">
+          <p className={`${s.text} font-black text-center leading-tight`} style={{ color: '#1F2937' }}>{action.name}</p>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <span className={s.icon}>{cfg.icon}</span>
+        </div>
+        <div style={{ backgroundColor: 'rgba(0,0,0,0.3)' }} className="py-1 text-center">
+          <span className={`${s.value} font-black text-[#FFFFFF]`}>${action.value}M</span>
+        </div>
       </div>
     );
   }
@@ -149,22 +213,47 @@ export function GameCard({ card, size = 'md', selected, onClick, disabled }: Gam
       borderColor = c1.border;
     } else {
       const c = PROPERTY_COLORS[rent.colors[0]];
-      background = c.bg; borderColor = c.border;
+      background = c.bg; 
+      borderColor = c.border;
     }
     return (
-      <div onClick={disabled ? undefined : onClick} className={`${baseClasses} ${interactiveClasses} ${selectedClasses} ${disabledClasses} border-2`} style={{ background, borderColor }}>
-        <div className="bg-white/95 py-1 px-1"><p className={`${s.text} font-black text-gray-800 text-center`}>{isWild ? 'WILD RENT' : 'RENT'}</p></div>
-        <div className="flex-1 flex flex-col items-center justify-center bg-white/20">
-          <span className={s.icon}>💵</span>
-          {!isWild && rent.colors.length >= 2 && <div className="flex gap-1 mt-1">{rent.colors.slice(0,2).map((c,i) => <div key={i} className="w-3 h-3 rounded-full border border-white/50" style={{ backgroundColor: PROPERTY_COLORS[c].bg }} />)}</div>}
-          {isWild && <span className={`${s.text} text-white font-bold mt-1`}>1 PLAYER</span>}
+      <div 
+        onClick={disabled ? undefined : onClick} 
+        className={`${baseClasses} ${interactiveClasses} ${disabledClasses} border-2`} 
+        style={{ background, borderColor, ...selectedStyle }}
+      >
+        <div style={{ backgroundColor: 'rgba(255,255,255,0.95)' }} className="py-1 px-1">
+          <p className={`${s.text} font-black text-center`} style={{ color: '#1F2937' }}>{isWild ? 'WILD RENT' : 'RENT'}</p>
         </div>
-        <div className="bg-black/40 py-1 text-center"><span className={`${s.value} font-black text-white`}>${rent.value}M</span></div>
+        <div className="flex-1 flex flex-col items-center justify-center" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+          <span className={s.icon}>💵</span>
+          {!isWild && rent.colors.length >= 2 && (
+            <div className="flex gap-1 mt-1">
+              {rent.colors.slice(0,2).map((c,i) => (
+                <div key={i} className="w-3 h-3 rounded-full" style={{ backgroundColor: PROPERTY_COLORS[c].bg, border: '1px solid rgba(255,255,255,0.5)' }} />
+              ))}
+            </div>
+          )}
+          {isWild && <span className={`${s.text} text-[#FFFFFF] font-bold mt-1`}>1 PLAYER</span>}
+        </div>
+        <div style={{ backgroundColor: 'rgba(0,0,0,0.4)' }} className="py-1 text-center">
+          <span className={`${s.value} font-black text-[#FFFFFF]`}>${rent.value}M</span>
+        </div>
       </div>
     );
   }
 
-  return <div className={`${baseClasses} bg-gray-600 border-2 border-gray-500 items-center justify-center`}><span className={s.icon}>❓</span></div>;
+  // Unknown card type fallback
+  return (
+    <div 
+      className={`${baseClasses} border-2 items-center justify-center`}
+      style={{ backgroundColor: '#4B5563', borderColor: '#6B7280' }}
+    >
+      <span className={s.icon}>❓</span>
+    </div>
+  );
 }
 
 export { PROPERTY_COLORS, RENT_VALUES };
+
+

@@ -21,7 +21,7 @@ function App() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="text-5xl animate-bounce mb-4">🎴</div>
-          <p className="text-gray-400 text-lg">Loading game...</p>
+          <p className="text-lg" style={{ color: '#9CA3AF' }}>Loading game...</p>
         </div>
       </div>
     );
@@ -30,7 +30,7 @@ function App() {
   return (
     <>
       {!isConnected && (
-        <div className="fixed top-0 left-0 right-0 bg-red-600 text-white text-center py-3 z-[100] font-semibold">
+        <div className="fixed top-0 left-0 right-0 text-center py-3 z-[100] font-semibold" style={{ backgroundColor: '#DC2626', color: '#FFFFFF' }}>
           ⚠️ Connecting to server...
         </div>
       )}
